@@ -1,0 +1,77 @@
+service: aws-node-rest-api-typescript
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: eu-central-1
+  environment:
+    NODE_ENV: dev
+  vpc:
+    securityGroupIds:
+      - sg-d10491b4
+    subnetIds:
+      - subnet-1d57f577
+      - subnet-4d7c6430
+      - subnet-e7a748ab
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:*
+          Resource: "*"
+
+plugins:
+  - serverless-plugin-typescript 
+  - serverless-offline
+
+package:
+  exclude:
+    - config/.env.stg
+    - config/.env.pro
+  include:
+    - config/.env.dev
+
+functions:
+  load:
+    handler: app/handler.load
+    memorySize: 1024
+    timeout: 900
+    events:
+      - schedule: rate(7 days)
+  tree:
+    handler: app/handler.tree
+    events:
+      - http:
+          path: entities/tree
+          method: get
+  create:
+    handler: app/handler.create
+    events:
+      - http:
+          path: entities
+          method: post
+  update:
+    handler: app/handler.update
+    events:
+      - http:
+          path: entities/{id}
+          method: put
+  find:
+    handler: app/handler.find
+    events:
+      - http:
+          path: entities
+          method: get
+  findOne:
+    handler: app/handler.findOne
+    events:
+      - http:
+          path: entities/{id}
+          method: get
+  deleteOne:
+    handler: app/handler.deleteOne
+    events:
+      - http:
+          path: entities/{id}
+          method: delete
